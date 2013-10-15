@@ -9,6 +9,15 @@
 /* Begin PBXBuildFile section */
 		3798F15617AECF9900C9A1B6 /* CoreFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3798F15517AECF9900C9A1B6 /* CoreFoundation.framework */; };
 		3798F15C17AECF9900C9A1B6 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3798F15A17AECF9900C9A1B6 /* InfoPlist.strings */; };
+		3798F16F17AECFF200C9A1B6 /* FMDatabase.m in Sources */ = {isa = PBXBuildFile; fileRef = 3798F16617AECFF200C9A1B6 /* FMDatabase.m */; };
+		3798F17017AECFF200C9A1B6 /* FMDatabaseAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = 3798F16817AECFF200C9A1B6 /* FMDatabaseAdditions.m */; };
+		3798F17117AECFF200C9A1B6 /* FMDatabasePool.m in Sources */ = {isa = PBXBuildFile; fileRef = 3798F16A17AECFF200C9A1B6 /* FMDatabasePool.m */; };
+		3798F17217AECFF200C9A1B6 /* FMDatabaseQueue.m in Sources */ = {isa = PBXBuildFile; fileRef = 3798F16C17AECFF200C9A1B6 /* FMDatabaseQueue.m */; };
+		3798F17317AECFF200C9A1B6 /* FMResultSet.m in Sources */ = {isa = PBXBuildFile; fileRef = 3798F16E17AECFF200C9A1B6 /* FMResultSet.m */; };
+		3798F17617AED02100C9A1B6 /* GTWApertureTripleStore.m in Sources */ = {isa = PBXBuildFile; fileRef = 3798F17517AED02100C9A1B6 /* GTWApertureTripleStore.m */; };
+		3798F17817AED04600C9A1B6 /* libsqlite3.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 3798F17717AED04600C9A1B6 /* libsqlite3.dylib */; };
+		3798F17A17AED4C500C9A1B6 /* AddressBook.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3798F17917AED4C500C9A1B6 /* AddressBook.framework */; };
+		37A98A78180DEF9700A64C06 /* GTWSWBase.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 37A98A77180DEF9700A64C06 /* GTWSWBase.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -17,6 +26,21 @@
 		3798F15917AECF9900C9A1B6 /* GTWApertureTripleStore-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GTWApertureTripleStore-Info.plist"; sourceTree = "<group>"; };
 		3798F15B17AECF9900C9A1B6 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		3798F15D17AECF9900C9A1B6 /* GTWApertureTripleStore-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "GTWApertureTripleStore-Prefix.pch"; sourceTree = "<group>"; };
+		3798F16517AECFF200C9A1B6 /* FMDatabase.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FMDatabase.h; sourceTree = "<group>"; };
+		3798F16617AECFF200C9A1B6 /* FMDatabase.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FMDatabase.m; sourceTree = "<group>"; };
+		3798F16717AECFF200C9A1B6 /* FMDatabaseAdditions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FMDatabaseAdditions.h; sourceTree = "<group>"; };
+		3798F16817AECFF200C9A1B6 /* FMDatabaseAdditions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FMDatabaseAdditions.m; sourceTree = "<group>"; };
+		3798F16917AECFF200C9A1B6 /* FMDatabasePool.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FMDatabasePool.h; sourceTree = "<group>"; };
+		3798F16A17AECFF200C9A1B6 /* FMDatabasePool.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FMDatabasePool.m; sourceTree = "<group>"; };
+		3798F16B17AECFF200C9A1B6 /* FMDatabaseQueue.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FMDatabaseQueue.h; sourceTree = "<group>"; };
+		3798F16C17AECFF200C9A1B6 /* FMDatabaseQueue.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FMDatabaseQueue.m; sourceTree = "<group>"; };
+		3798F16D17AECFF200C9A1B6 /* FMResultSet.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FMResultSet.h; sourceTree = "<group>"; };
+		3798F16E17AECFF200C9A1B6 /* FMResultSet.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FMResultSet.m; sourceTree = "<group>"; };
+		3798F17417AED02100C9A1B6 /* GTWApertureTripleStore.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GTWApertureTripleStore.h; sourceTree = "<group>"; };
+		3798F17517AED02100C9A1B6 /* GTWApertureTripleStore.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GTWApertureTripleStore.m; sourceTree = "<group>"; };
+		3798F17717AED04600C9A1B6 /* libsqlite3.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libsqlite3.dylib; path = usr/lib/libsqlite3.dylib; sourceTree = SDKROOT; };
+		3798F17917AED4C500C9A1B6 /* AddressBook.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AddressBook.framework; path = System/Library/Frameworks/AddressBook.framework; sourceTree = SDKROOT; };
+		37A98A77180DEF9700A64C06 /* GTWSWBase.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GTWSWBase.framework; path = ../../../../../Library/Frameworks/GTWSWBase.framework; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -24,6 +48,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3798F17A17AED4C500C9A1B6 /* AddressBook.framework in Frameworks */,
+				3798F17817AED04600C9A1B6 /* libsqlite3.dylib in Frameworks */,
+				37A98A78180DEF9700A64C06 /* GTWSWBase.framework in Frameworks */,
 				3798F15617AECF9900C9A1B6 /* CoreFoundation.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -51,6 +78,9 @@
 		3798F15417AECF9900C9A1B6 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				37A98A77180DEF9700A64C06 /* GTWSWBase.framework */,
+				3798F17717AED04600C9A1B6 /* libsqlite3.dylib */,
+				3798F17917AED4C500C9A1B6 /* AddressBook.framework */,
 				3798F15517AECF9900C9A1B6 /* CoreFoundation.framework */,
 			);
 			name = Frameworks;
@@ -59,6 +89,18 @@
 		3798F15717AECF9900C9A1B6 /* GTWApertureTripleStore */ = {
 			isa = PBXGroup;
 			children = (
+				3798F17417AED02100C9A1B6 /* GTWApertureTripleStore.h */,
+				3798F17517AED02100C9A1B6 /* GTWApertureTripleStore.m */,
+				3798F16517AECFF200C9A1B6 /* FMDatabase.h */,
+				3798F16617AECFF200C9A1B6 /* FMDatabase.m */,
+				3798F16717AECFF200C9A1B6 /* FMDatabaseAdditions.h */,
+				3798F16817AECFF200C9A1B6 /* FMDatabaseAdditions.m */,
+				3798F16917AECFF200C9A1B6 /* FMDatabasePool.h */,
+				3798F16A17AECFF200C9A1B6 /* FMDatabasePool.m */,
+				3798F16B17AECFF200C9A1B6 /* FMDatabaseQueue.h */,
+				3798F16C17AECFF200C9A1B6 /* FMDatabaseQueue.m */,
+				3798F16D17AECFF200C9A1B6 /* FMResultSet.h */,
+				3798F16E17AECFF200C9A1B6 /* FMResultSet.m */,
 				3798F15817AECF9900C9A1B6 /* Supporting Files */,
 			);
 			path = GTWApertureTripleStore;
@@ -100,7 +142,7 @@
 		3798F14A17AECF9900C9A1B6 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0460;
+				LastUpgradeCheck = 0500;
 				ORGANIZATIONNAME = "Gregory Todd Williams";
 			};
 			buildConfigurationList = 3798F14D17AECF9900C9A1B6 /* Build configuration list for PBXProject "GTWApertureTripleStore" */;
@@ -136,6 +178,12 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3798F16F17AECFF200C9A1B6 /* FMDatabase.m in Sources */,
+				3798F17017AECFF200C9A1B6 /* FMDatabaseAdditions.m in Sources */,
+				3798F17117AECFF200C9A1B6 /* FMDatabasePool.m in Sources */,
+				3798F17217AECFF200C9A1B6 /* FMDatabaseQueue.m in Sources */,
+				3798F17317AECFF200C9A1B6 /* FMResultSet.m in Sources */,
+				3798F17617AED02100C9A1B6 /* GTWApertureTripleStore.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -157,7 +205,6 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
 				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_ENABLE_OBJC_ARC = YES;
@@ -190,7 +237,6 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
 				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_ENABLE_OBJC_ARC = YES;
@@ -216,6 +262,12 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				COMBINE_HIDPI_IMAGES = YES;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"\\\\\\\"$(SRCROOT)/../../../../../Library/Frameworks\\\\\\\"",
+					"$(LOCAL_LIBRARY_DIR)/Frameworks",
+					"$(USER_LIBRARY_DIR)/Frameworks",
+				);
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "GTWApertureTripleStore/GTWApertureTripleStore-Prefix.pch";
 				INFOPLIST_FILE = "GTWApertureTripleStore/GTWApertureTripleStore-Info.plist";
@@ -229,6 +281,12 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				COMBINE_HIDPI_IMAGES = YES;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"\\\\\\\"$(SRCROOT)/../../../../../Library/Frameworks\\\\\\\"",
+					"$(LOCAL_LIBRARY_DIR)/Frameworks",
+					"$(USER_LIBRARY_DIR)/Frameworks",
+				);
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "GTWApertureTripleStore/GTWApertureTripleStore-Prefix.pch";
 				INFOPLIST_FILE = "GTWApertureTripleStore/GTWApertureTripleStore-Info.plist";
@@ -257,6 +315,7 @@
 				3798F16217AECF9900C9A1B6 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
