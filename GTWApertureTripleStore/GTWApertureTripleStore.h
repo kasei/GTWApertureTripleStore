@@ -21,5 +21,6 @@
 
 - (instancetype) initWithDictionary: (NSDictionary*) dictionary;
 - (instancetype) initWithApertureBundlePath: (NSString*) path;
++ (NSString*) usage;
 
 @end

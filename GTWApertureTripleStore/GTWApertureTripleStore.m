@@ -23,8 +23,12 @@
 
 @implementation GTWApertureTripleStore
 
-- (unsigned)interfaceVersion {
++ (unsigned)interfaceVersion {
     return 0;
+}
+
++ (NSString*) usage {
+    return @"{ \"bundlepath\": <Path to Aperture Library.aplibrary file> }";
 }
 
 - (instancetype) initWithDictionary: (NSDictionary*) dictionary {
@@ -77,91 +81,6 @@
     return self;
 }
 
-- (BOOL) enumeratePhotoFacePeopleFromDatabase: (FMDatabase*) db usingBlock: (void (^)(id<GTWTriple> t)) block {
-    FMResultSet *rs = [db executeQuery:@"SELECT faceKey, name, email FROM RKFaceName ORDER BY fullName"];
-    if (rs) {
-        while ([rs next]) {
-            NSNumber* pid   = [rs objectForColumnName:@"faceKey"];
-            NSString* name  = [rs stringForColumn:@"name"];
-            NSString* email = [rs stringForColumn:@"email"];
-            if (!email)
-                email   = @"";
-            [self.people setObject:@{@"name": name, @"email": email} forKey:pid];
-            // just print out what we've got in a number of formats.
-//            NSLog(@"%d %@ %@",
-//                  [rs intForColumn:@"faceKey"],
-//                  [rs stringForColumn:@"name"],
-//                  [rs stringForColumn:@"email"]
-//            );
-        }
-        [rs close];
-    } else {
-        NSLog(@"%@", [db lastErrorMessage]);
-    }
-    return YES;
-}
-
-- (BOOL) enumeratePhotoFaceDataFromDatabase: (FMDatabase*) db usingBlock: (void (^)(id<GTWTriple> t)) block {
-    FMResultSet *rs = [db executeQuery:@"SELECT masterUuid AS photoid, faceKey FROM RKDetectedFace"];
-    if (rs) {
-        while ([rs next]) {
-            NSString* photo = [rs objectForColumnName:@"photoid"];
-            NSNumber* pid   = [rs objectForColumnName:@"faceKey"];
-            NSMutableSet* set   = [self.faces objectForKey:photo];
-            if (!set) {
-                set = [NSMutableSet set];
-                [self.faces setObject:set forKey:photo];
-            }
-            [set addObject:pid];
-        }
-        [rs close];
-    } else {
-        NSLog(@"%@", [db lastErrorMessage]);
-    }
-    return YES;
-}
-
-- (BOOL) enumeratePhotoDetailDataFromDatabase: (FMDatabase*) db usingBlock: (void (^)(id<GTWTriple> t)) block {
-    FMResultSet *rs = [db executeQuery:@"SELECT uuid AS photoid, imagePath FROM RKMaster"];
-    if (rs) {
-        while ([rs next]) {
-            NSString* photo = [rs objectForColumnName:@"photoid"];
-            NSString* path  = [rs objectForColumnName:@"imagePath"];
-//            [photos setObject:@{@"path": path} forKey:photo];
-            
-            // path a foaf:Image
-            NSString* photoPath = [NSString stringWithFormat:@"%@/Masters/%@", self.base, path];
-            NSSet* set  = self.faces[photo];
-            
-//            NSLog(@"Photo: %@", photoPath);
-            
-            GTWIRI* subject     = [[GTWIRI alloc] initWithIRI:[NSString stringWithFormat:@"file://%@", photoPath]];
-            GTWIRI* predicate   = IRI(@"http://www.w3.org/1999/02/22-rdf-syntax-ns#type");
-            GTWIRI* object      = IRI(@"http://xmlns.com/foaf/0.1/Image");
-            id<GTWTriple> t     = TRIPLE(subject, predicate, object);
-            block(t);
-            
-            for (id pid in set) {
-                NSDictionary* props = self.people[pid];
-                ABPerson* person = [self matchPersonFromProperties: props];
-                if (person) {
-                    [self.seenPeople setObject:props forKey:person];
-//                    NSString* name  = props[@"name"];
-//                    NSLog(@"  - %@ (%@)", name, uri);
-                    GTWIRI* predicate   = IRI(@"http://xmlns.com/foaf/0.1/depicts");
-                    GTWIRI* object      = [self iriForPersonID:[person uniqueId]];
-                    id<GTWTriple> t     = TRIPLE(subject, predicate, object);
-                    block(t);
-                }
-            }
-        }
-        [rs close];
-    } else {
-        NSLog(@"%@", [db lastErrorMessage]);
-    }
-    return YES;
-}
-
 - (GTWIRI*) iriForPersonID: (NSString*) uid {
     NSString* uri   = [NSString stringWithFormat:@"tag:kasei.us,2013-05-12:%@", uid];
     return IRI(uri);
@@ -206,9 +125,97 @@
         }
         return;
     };
-    [self enumeratePhotoFacePeopleFromDatabase:self.facesdb usingBlock:filter];
-    [self enumeratePhotoFaceDataFromDatabase:self.facesdb usingBlock:filter];
-    [self enumeratePhotoDetailDataFromDatabase:self.librarydb usingBlock:filter];
+    
+    {
+//        [self enumeratePhotoFacePeopleFromDatabase:self.facesdb usingBlock:filter];
+        FMDatabase* db  = self.facesdb;
+        FMResultSet *rs = [db executeQuery:@"SELECT faceKey, name, email FROM RKFaceName ORDER BY fullName"];
+        if (rs) {
+            while ([rs next]) {
+                NSNumber* pid   = [rs objectForColumnName:@"faceKey"];
+                NSString* name  = [rs stringForColumn:@"name"];
+                NSString* email = [rs stringForColumn:@"email"];
+                if (!email)
+                    email   = @"";
+                [self.people setObject:@{@"name": name, @"email": email} forKey:pid];
+                // just print out what we've got in a number of formats.
+                //            NSLog(@"%d %@ %@",
+                //                  [rs intForColumn:@"faceKey"],
+                //                  [rs stringForColumn:@"name"],
+                //                  [rs stringForColumn:@"email"]
+                //            );
+            }
+            [rs close];
+        } else {
+            NSLog(@"%@", [db lastErrorMessage]);
+        }
+    }
+    
+    {
+//        [self enumeratePhotoFaceDataFromDatabase:self.facesdb usingBlock:filter];
+        FMDatabase* db  = self.facesdb;
+        FMResultSet *rs = [db executeQuery:@"SELECT masterUuid AS photoid, faceKey FROM RKDetectedFace"];
+        if (rs) {
+            while ([rs next]) {
+                NSString* photo = [rs objectForColumnName:@"photoid"];
+                NSNumber* pid   = [rs objectForColumnName:@"faceKey"];
+                NSMutableSet* set   = [self.faces objectForKey:photo];
+                if (!set) {
+                    set = [NSMutableSet set];
+                    [self.faces setObject:set forKey:photo];
+                }
+                [set addObject:pid];
+            }
+            [rs close];
+        } else {
+            NSLog(@"%@", [db lastErrorMessage]);
+        }
+
+    }
+    
+    {
+//        [self enumeratePhotoDetailDataFromDatabase:self.librarydb usingBlock:filter];
+        FMDatabase* db  = self.librarydb;
+        FMResultSet *rs = [db executeQuery:@"SELECT uuid AS photoid, imagePath FROM RKMaster"];
+        if (rs) {
+            while ([rs next]) {
+                NSString* photo = [rs objectForColumnName:@"photoid"];
+                NSString* path  = [rs objectForColumnName:@"imagePath"];
+                //            [photos setObject:@{@"path": path} forKey:photo];
+                
+                // path a foaf:Image
+                NSString* photoPath = [NSString stringWithFormat:@"%@/Masters/%@", self.base, path];
+                NSSet* set  = self.faces[photo];
+                
+                //            NSLog(@"Photo: %@", photoPath);
+                
+                GTWIRI* subject     = [[GTWIRI alloc] initWithIRI:[NSString stringWithFormat:@"file://%@", photoPath]];
+                GTWIRI* predicate   = IRI(@"http://www.w3.org/1999/02/22-rdf-syntax-ns#type");
+                GTWIRI* object      = IRI(@"http://xmlns.com/foaf/0.1/Image");
+                id<GTWTriple> t     = TRIPLE(subject, predicate, object);
+                filter(t);
+                
+                for (id pid in set) {
+                    NSDictionary* props = self.people[pid];
+                    ABPerson* person = [self matchPersonFromProperties: props];
+                    if (person) {
+                        [self.seenPeople setObject:props forKey:person];
+                        //                    NSString* name  = props[@"name"];
+                        //                    NSLog(@"  - %@ (%@)", name, uri);
+                        GTWIRI* predicate   = IRI(@"http://xmlns.com/foaf/0.1/depicts");
+                        GTWIRI* object      = [self iriForPersonID:[person uniqueId]];
+                        id<GTWTriple> t     = TRIPLE(subject, predicate, object);
+                        filter(t);
+                    }
+                }
+            }
+            [rs close];
+        } else {
+            NSLog(@"%@", [db lastErrorMessage]);
+        }
+    }
+    
+    
 //    NSLog(@"People properties: %@", self.people);
     for (ABPerson* p in self.seenPeople) {
         id props    = [self.seenPeople objectForKey:p];
