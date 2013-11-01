@@ -31,6 +31,10 @@
     return @"{ \"bundlepath\": <Path to Aperture Library.aplibrary file> }";
 }
 
++ (NSSet*) implementedProtocols {
+    return [NSSet setWithObjects:@protocol(GTWTripleStore), nil];
+}
+
 - (instancetype) initWithDictionary: (NSDictionary*) dictionary {
     NSString* path  = dictionary[@"bundlepath"];
     if (!path) {
