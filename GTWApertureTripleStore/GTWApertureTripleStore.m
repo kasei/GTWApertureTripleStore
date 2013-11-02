@@ -130,7 +130,7 @@
         return;
     };
     
-    {
+    @autoreleasepool {
 //        [self enumeratePhotoFacePeopleFromDatabase:self.facesdb usingBlock:filter];
         FMDatabase* db  = self.facesdb;
         FMResultSet *rs = [db executeQuery:@"SELECT faceKey, name, email FROM RKFaceName ORDER BY fullName"];
@@ -155,7 +155,7 @@
         }
     }
     
-    {
+    @autoreleasepool {
 //        [self enumeratePhotoFaceDataFromDatabase:self.facesdb usingBlock:filter];
         FMDatabase* db  = self.facesdb;
         FMResultSet *rs = [db executeQuery:@"SELECT masterUuid AS photoid, faceKey FROM RKDetectedFace"];
@@ -177,7 +177,7 @@
 
     }
     
-    {
+    @autoreleasepool {
 //        [self enumeratePhotoDetailDataFromDatabase:self.librarydb usingBlock:filter];
         FMDatabase* db  = self.librarydb;
         FMResultSet *rs = [db executeQuery:@"SELECT uuid AS photoid, imagePath FROM RKMaster"];
@@ -219,29 +219,30 @@
         }
     }
     
-    
-//    NSLog(@"People properties: %@", self.people);
-    for (ABPerson* p in self.seenPeople) {
-        id props    = [self.seenPeople objectForKey:p];
-//        NSLog(@"props: %@", props);
-        NSString* name  = props[@"name"];
-//        NSString* email  = props[@"email"];
-//        NSLog(@"person unique ID: %@", [p uniqueId]);
-        GTWIRI* subject     = [self iriForPersonID:[p uniqueId]];
-        GTWIRI* foafname    = IRI(@"http://xmlns.com/foaf/0.1/name");
-        GTWIRI* foafmbox    = IRI(@"http://xmlns.com/foaf/0.1/mbox_sha1sum");
-        GTWIRI* foafPerson  = IRI(@"http://xmlns.com/foaf/0.1/Person");
-        GTWIRI* rdftype     = IRI(@"http://www.w3.org/1999/02/22-rdf-syntax-ns#type");
-        filter(TRIPLE(subject, rdftype, foafPerson));
-        filter(TRIPLE(subject, foafname, LITERAL(name)));
-        
-        ABMultiValue *emails = [p valueForProperty:kABEmailProperty];
-        NSUInteger i;
-        for (i = 0; i < [emails count]; i++) {
-            id email    = [emails valueAtIndex:i];
-            NSString* value = [NSString stringWithFormat:@"mailto:%@", email];
-            GTWLiteral* l   = [self sha1LiteralForString:value];
-            filter(TRIPLE(subject, foafmbox, l));
+    @autoreleasepool {
+    //    NSLog(@"People properties: %@", self.people);
+        for (ABPerson* p in self.seenPeople) {
+            id props    = [self.seenPeople objectForKey:p];
+    //        NSLog(@"props: %@", props);
+            NSString* name  = props[@"name"];
+    //        NSString* email  = props[@"email"];
+    //        NSLog(@"person unique ID: %@", [p uniqueId]);
+            GTWIRI* subject     = [self iriForPersonID:[p uniqueId]];
+            GTWIRI* foafname    = IRI(@"http://xmlns.com/foaf/0.1/name");
+            GTWIRI* foafmbox    = IRI(@"http://xmlns.com/foaf/0.1/mbox_sha1sum");
+            GTWIRI* foafPerson  = IRI(@"http://xmlns.com/foaf/0.1/Person");
+            GTWIRI* rdftype     = IRI(@"http://www.w3.org/1999/02/22-rdf-syntax-ns#type");
+            filter(TRIPLE(subject, rdftype, foafPerson));
+            filter(TRIPLE(subject, foafname, LITERAL(name)));
+            
+            ABMultiValue *emails = [p valueForProperty:kABEmailProperty];
+            NSUInteger i;
+            for (i = 0; i < [emails count]; i++) {
+                id email    = [emails valueAtIndex:i];
+                NSString* value = [NSString stringWithFormat:@"mailto:%@", email];
+                GTWLiteral* l   = [self sha1LiteralForString:value];
+                filter(TRIPLE(subject, foafmbox, l));
+            }
         }
     }
     return YES;
