@@ -6,7 +6,7 @@
 //  Copyright (c) 2013 Gregory Todd Williams. All rights reserved.
 //
 
-#define IRI(i) [[GTWIRI alloc] initWithIRI:i];
+#define IRI(i) [[GTWIRI alloc] initWithValue:i];
 #define LITERAL(l) [[GTWLiteral alloc] initWithValue:l]
 #define TRIPLE(s,p,o) [[GTWTriple alloc] initWithSubject:s predicate:p object:o]
 
@@ -18,8 +18,59 @@
 #import <AddressBook/AddressBook.h>
 #import <GTWSWBase/GTWSWBase.h>
 #import <GTWSWBase/GTWIRI.h>
+#import <GTWSWBase/GTWVariable.h>
 #import <GTWSWBase/GTWLiteral.h>
 #import <GTWSWBase/GTWTriple.h>
+#import "GTWTree.h"
+
+@interface GTWApertureTripleStoreQueryPlan : NSObject<GTWTree, GTWQueryPlan>
+@property BOOL leaf;
+@property GTWTreeType type;
+@property NSArray* arguments;
+@property id<GTWTree> treeValue;
+@property id value;
+@property void* ptr;
+@property NSMutableDictionary* annotations;
+@property NSSet* variables;
+@end
+@implementation GTWApertureTripleStoreQueryPlan
+- (GTWApertureTripleStoreQueryPlan*) initWithVariables: (NSSet*) vars { if (self = [self init]) { self.variables = [vars copy]; } return self; }
+- (GTWApertureTripleStoreQueryPlan*) init { if (self = [super init]) { self.type = @"PlanCustom"; self.variables = [NSSet set]; self.leaf = YES; } return self; }
+- (id) copyWithCanonicalization { return [self copy]; }
+- (id) copyReplacingValues: (NSDictionary*) map { return [self copy]; }
+- (NSString*) treeTypeName { return self.type; }
+- (NSSet*) nonAggregatedVariables { return [NSSet set]; }
+- (NSSet*) referencedBlanks { return [NSSet set]; }
+- (NSSet*) inScopeVariables { return self.variables; }
+- (NSSet*) inScopeNodesOfClass: (NSSet*) types {
+    if ([types containsObject:[GTWVariable class]]) {
+        return [self inScopeVariables];
+    }
+    return [NSSet set];
+}
+- (NSString*) conciseDescription { return @"GTWApertureTripleStoreQueryPlan"; }
+- (NSString*) longDescription { return @"GTWApertureTripleStoreQueryPlan"; }
+- (id) _applyPrefixBlock: (GTWTreeAccessorBlock)prefix postfixBlock: (GTWTreeAccessorBlock) postfix withParent: (id<GTWTree>) parent level: (NSUInteger) level {
+    BOOL stop   = NO;
+    id value    = nil;
+    if (prefix) {
+        value    = prefix(self, parent, level, &stop);
+        if (stop)
+            return value;
+    }
+    if (postfix) {
+        value    = postfix(self, parent, level, &stop);
+    }
+    return value;
+}
+- (NSString*) description {
+    return [self longDescription];
+}
+@end
+
+
+
+
 
 @implementation GTWApertureTripleStore
 
@@ -193,7 +244,7 @@
                 
                 //            NSLog(@"Photo: %@", photoPath);
                 
-                GTWIRI* subject     = [[GTWIRI alloc] initWithIRI:[NSString stringWithFormat:@"file://%@", photoPath]];
+                GTWIRI* subject     = [[GTWIRI alloc] initWithValue:[NSString stringWithFormat:@"file://%@", photoPath]];
                 GTWIRI* predicate   = IRI(@"http://www.w3.org/1999/02/22-rdf-syntax-ns#type");
                 GTWIRI* object      = IRI(@"http://xmlns.com/foaf/0.1/Image");
                 id<GTWTriple> t     = TRIPLE(subject, predicate, object);
@@ -259,5 +310,101 @@
     return [[GTWLiteral alloc] initWithValue: output];
 }
 
+
+
+- (NSEnumerator*) imageTriplesBindingVariable: (NSString*) var {
+    NSMutableArray* results = [NSMutableArray array];
+    @autoreleasepool {
+        FMDatabase* db  = self.librarydb;
+        FMResultSet *rs = [db executeQuery:@"SELECT uuid AS photoid, imagePath FROM RKMaster"];
+        if (rs) {
+            while ([rs next]) {
+                NSString* path  = [rs objectForColumnName:@"imagePath"];
+                NSString* photoPath = [NSString stringWithFormat:@"%@/Masters/%@", self.base, path];
+                GTWIRI* subject     = [[GTWIRI alloc] initWithValue:[NSString stringWithFormat:@"file://%@", photoPath]];
+                [results addObject:@{var: subject}];
+            }
+            [rs close];
+        }
+    }
+    return [results objectEnumerator];
+}
+
+- (NSEnumerator*) imageDepictionTriplesBindingImage: (NSString*) image depiction: (NSString*) depiction {
+    NSMutableArray* results = [NSMutableArray array];
+    @autoreleasepool {
+        FMDatabase* db  = self.facesdb;
+        FMResultSet *rs = [db executeQuery:@"SELECT masterUuid AS photoid, faceKey FROM RKDetectedFace"];
+        if (rs) {
+            while ([rs next]) {
+                NSString* photo = [rs objectForColumnName:@"photoid"];
+                NSNumber* pid   = [rs objectForColumnName:@"faceKey"];
+                NSMutableSet* set   = [self.faces objectForKey:photo];
+                if (!set) {
+                    set = [NSMutableSet set];
+                    [self.faces setObject:set forKey:photo];
+                }
+                [set addObject:pid];
+            }
+            [rs close];
+        } else {
+            NSLog(@"%@", [db lastErrorMessage]);
+        }
+        
+    }
+    @autoreleasepool {
+        FMDatabase* db  = self.librarydb;
+        FMResultSet *rs = [db executeQuery:@"SELECT uuid AS photoid, imagePath FROM RKMaster"];
+        if (rs) {
+            while ([rs next]) {
+                NSString* photo = [rs objectForColumnName:@"photoid"];
+                NSString* path  = [rs objectForColumnName:@"imagePath"];
+                NSString* photoPath = [NSString stringWithFormat:@"%@/Masters/%@", self.base, path];
+                NSSet* set  = self.faces[photo];
+                GTWIRI* subject     = [[GTWIRI alloc] initWithValue:[NSString stringWithFormat:@"file://%@", photoPath]];
+                for (id pid in set) {
+                    NSDictionary* props = self.people[pid];
+                    ABPerson* person = [self matchPersonFromProperties: props];
+                    if (person) {
+                        GTWIRI* object      = [self iriForPersonID:[person uniqueId]];
+                        [results addObject:@{image: subject, depiction: object}];
+                    }
+                }
+            }
+            [rs close];
+        }
+    }
+    return [results objectEnumerator];
+}
+
+- (id<GTWTree,GTWQueryPlan>) queryPlanForAlgebra: (id<GTWTree>) algebra usingDataset: (id<GTWDataset>) dataset withModel: (id<GTWModel>) model options: (NSDictionary*) options {
+    NSLog(@"Aperture triple store trying to plan algebra %@", [algebra conciseDescription]);
+    if ([algebra.treeTypeName isEqualToString:@"TreeTriple"]) {
+        id<GTWTriple> triple    = algebra.value;
+        NSLog(@"planning triple %@", triple);
+        id<GTWTerm> s   = triple.subject;
+        id<GTWTerm> p   = triple.predicate;
+        id<GTWTerm> o   = triple.object;
+        if ([s isKindOfClass:[GTWVariable class]]) {
+            if ([p.value isEqualToString:@"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"] && [o.value isEqualToString:@"http://xmlns.com/foaf/0.1/Image"]) {
+                NSSet* variables    = [NSSet setWithObject:s];
+                id<GTWTree,GTWQueryPlan> plan   = [[GTWApertureTripleStoreQueryPlan alloc] initWithVariables:variables];
+                plan.value  = ^NSEnumerator*(id<GTWTree, GTWQueryPlan> plan, id<GTWModel> model){
+                    return [self imageTriplesBindingVariable:s.value];
+                };
+                return plan;
+            }
+            if ([p.value isEqualToString:@"http://xmlns.com/foaf/0.1/depicts"] && [o isKindOfClass:[GTWVariable class]]) {
+                NSSet* variables    = [NSSet setWithObjects:s, o, nil];
+                id<GTWTree,GTWQueryPlan> plan   = [[GTWApertureTripleStoreQueryPlan alloc] initWithVariables:variables];
+                plan.value  = ^NSEnumerator*(id<GTWTree, GTWQueryPlan> plan, id<GTWModel> model){
+                    return [self imageDepictionTriplesBindingImage:s.value depiction:o.value];
+                };
+                return plan;
+            }
+        }
+    }
+    return nil;
+}
 
 @end

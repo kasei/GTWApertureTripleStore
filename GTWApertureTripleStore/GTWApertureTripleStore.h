@@ -9,8 +9,9 @@
 #import <Foundation/Foundation.h>
 #import <GTWSWBase/GTWSWBase.h>
 #import "FMDatabase.h"
+#import "GTWSPARQLEngine.h"
 
-@interface GTWApertureTripleStore : NSObject<GTWTripleStore>
+@interface GTWApertureTripleStore : NSObject<GTWTripleStore,GTWQueryPlanner>
 
 @property (retain) NSString* base;
 @property (retain) FMDatabase* facesdb;
