@@ -16,9 +16,11 @@
 @property (retain) NSString* base;
 @property (retain) FMDatabase* facesdb;
 @property (retain) FMDatabase* librarydb;
+@property (retain) FMDatabase* propdb;
 @property (retain) NSMutableDictionary* faces;
 @property (retain) NSMutableDictionary* people;
 @property (retain) NSMutableDictionary* seenPeople;
+@property id<GTWLogger> logger;
 
 - (instancetype) initWithDictionary: (NSDictionary*) dictionary;
 - (instancetype) initWithApertureBundlePath: (NSString*) path;
