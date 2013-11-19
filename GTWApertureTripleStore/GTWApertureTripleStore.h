@@ -9,7 +9,7 @@
 #import <Foundation/Foundation.h>
 #import <GTWSWBase/GTWSWBase.h>
 #import "FMDatabase.h"
-#import "GTWSPARQLEngine.h"
+#import <SPARQLKit/SPARQLKit.h>
 
 @interface GTWApertureTripleStore : NSObject<GTWTripleStore,GTWQueryPlanner>
 

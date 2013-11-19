@@ -21,7 +21,7 @@
 #import <GTWSWBase/GTWVariable.h>
 #import <GTWSWBase/GTWLiteral.h>
 #import <GTWSWBase/GTWTriple.h>
-#import "GTWTree.h"
+#import <SPARQLKit/GTWTree.h>
 #import <GTWSPARQLPlugIn/GTWSPARQLPlugIn.h>
 
 static NSString* rdftype        = @"http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
