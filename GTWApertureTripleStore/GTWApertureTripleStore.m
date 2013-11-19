@@ -22,7 +22,6 @@
 #import <GTWSWBase/GTWLiteral.h>
 #import <GTWSWBase/GTWTriple.h>
 #import <SPARQLKit/GTWTree.h>
-#import <GTWSPARQLPlugIn/GTWSPARQLPlugIn.h>
 
 static NSString* rdftype        = @"http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 static NSString* foafImage      = @"http://xmlns.com/foaf/0.1/Image";
@@ -34,14 +33,15 @@ static NSString* foafName       = @"http://xmlns.com/foaf/0.1/name";
 static NSString* foafMboxSha    = @"http://xmlns.com/foaf/0.1/mbox_sha1sum";
 static NSString* foafPerson     = @"http://xmlns.com/foaf/0.1/Person";
 
-@interface GTWApertureTripleStoreQueryPlan : GTWSPARQLPlugIn
+@interface GTWApertureTripleStoreQueryPlan : GTWQueryPlan
 @property NSSet* variables;
-- (GTWSPARQLPlugIn*) initWithBlock: (NSEnumerator* (^)(id<GTWTree, GTWQueryPlan> plan, id<GTWModel> model))block bindingVariables: (NSSet*) vars;
+- (GTWApertureTripleStoreQueryPlan*) initWithBlock: (NSEnumerator* (^)(id<GTWTree, GTWQueryPlan> plan, id<GTWModel> model))block bindingVariables: (NSSet*) vars;
 @end
 @implementation GTWApertureTripleStoreQueryPlan
-- (GTWSPARQLPlugIn*) initWithBlock: (NSEnumerator* (^)(id<GTWTree, GTWQueryPlan> plan, id<GTWModel> model))block bindingVariables: (NSSet*) vars {
-    if (self = [self initWithBlock:block]) {
-        self.variables = [vars copy];
+- (GTWApertureTripleStoreQueryPlan*) initWithBlock: (NSEnumerator* (^)(id<GTWTree, GTWQueryPlan> plan, id<GTWModel> model))block bindingVariables: (NSSet*) vars {
+    if (self = [self init]) {
+        self.value      = block;
+        self.variables  = [vars copy];
     }
     return self;
 }

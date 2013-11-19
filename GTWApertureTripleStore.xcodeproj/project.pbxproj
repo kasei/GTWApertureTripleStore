@@ -8,7 +8,6 @@
 
 /* Begin PBXBuildFile section */
 		3700DDD9183B151000AF79C7 /* SPARQLKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3700DDD8183B151000AF79C7 /* SPARQLKit.framework */; };
-		377C2B72183718E000F4171E /* GTWSPARQLPlugIn.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 377C2B71183718E000F4171E /* GTWSPARQLPlugIn.framework */; };
 		3798F15617AECF9900C9A1B6 /* CoreFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3798F15517AECF9900C9A1B6 /* CoreFoundation.framework */; };
 		3798F15C17AECF9900C9A1B6 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3798F15A17AECF9900C9A1B6 /* InfoPlist.strings */; };
 		3798F16F17AECFF200C9A1B6 /* FMDatabase.m in Sources */ = {isa = PBXBuildFile; fileRef = 3798F16617AECFF200C9A1B6 /* FMDatabase.m */; };
@@ -24,7 +23,6 @@
 
 /* Begin PBXFileReference section */
 		3700DDD8183B151000AF79C7 /* SPARQLKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SPARQLKit.framework; path = ../../../../../Library/Frameworks/SPARQLKit.framework; sourceTree = "<group>"; };
-		377C2B71183718E000F4171E /* GTWSPARQLPlugIn.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GTWSPARQLPlugIn.framework; path = ../../../../../Library/Frameworks/GTWSPARQLPlugIn.framework; sourceTree = "<group>"; };
 		3798F15217AECF9900C9A1B6 /* GTWApertureTripleStore.bundle */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = GTWApertureTripleStore.bundle; sourceTree = BUILT_PRODUCTS_DIR; };
 		3798F15517AECF9900C9A1B6 /* CoreFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreFoundation.framework; path = System/Library/Frameworks/CoreFoundation.framework; sourceTree = SDKROOT; };
 		3798F15917AECF9900C9A1B6 /* GTWApertureTripleStore-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GTWApertureTripleStore-Info.plist"; sourceTree = "<group>"; };
@@ -52,7 +50,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				377C2B72183718E000F4171E /* GTWSPARQLPlugIn.framework in Frameworks */,
 				3798F17A17AED4C500C9A1B6 /* AddressBook.framework in Frameworks */,
 				3798F17817AED04600C9A1B6 /* libsqlite3.dylib in Frameworks */,
 				37A98A78180DEF9700A64C06 /* GTWSWBase.framework in Frameworks */,
@@ -85,7 +82,6 @@
 			isa = PBXGroup;
 			children = (
 				3700DDD8183B151000AF79C7 /* SPARQLKit.framework */,
-				377C2B71183718E000F4171E /* GTWSPARQLPlugIn.framework */,
 				37A98A77180DEF9700A64C06 /* GTWSWBase.framework */,
 				3798F17717AED04600C9A1B6 /* libsqlite3.dylib */,
 				3798F17917AED4C500C9A1B6 /* AddressBook.framework */,
