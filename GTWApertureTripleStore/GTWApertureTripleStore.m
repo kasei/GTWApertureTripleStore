@@ -39,7 +39,7 @@ static NSString* foafPerson     = @"http://xmlns.com/foaf/0.1/Person";
 @end
 @implementation GTWApertureTripleStoreQueryPlan
 - (GTWApertureTripleStoreQueryPlan*) initWithBlock: (NSEnumerator* (^)(id<GTWTree, GTWQueryPlan> plan, id<GTWModel> model))block bindingVariables: (NSSet*) vars {
-    if (self = [self init]) {
+    if (self = [self initWithType:kPlanCustom arguments:nil]) {
         self.value      = block;
         self.variables  = [vars copy];
     }
