@@ -270,7 +270,6 @@
 				COMBINE_HIDPI_IMAGES = YES;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
-					"\\\\\\\"$(SRCROOT)/../../../../../Library/Frameworks\\\\\\\"",
 					"$(LOCAL_LIBRARY_DIR)/Frameworks",
 					"$(USER_LIBRARY_DIR)/Frameworks",
 				);
@@ -289,7 +288,6 @@
 				COMBINE_HIDPI_IMAGES = YES;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
-					"\\\\\\\"$(SRCROOT)/../../../../../Library/Frameworks\\\\\\\"",
 					"$(LOCAL_LIBRARY_DIR)/Frameworks",
 					"$(USER_LIBRARY_DIR)/Frameworks",
 				);

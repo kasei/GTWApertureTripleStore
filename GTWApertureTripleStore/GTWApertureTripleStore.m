@@ -21,7 +21,7 @@
 #import <GTWSWBase/GTWVariable.h>
 #import <GTWSWBase/GTWLiteral.h>
 #import <GTWSWBase/GTWTriple.h>
-#import <SPARQLKit/GTWTree.h>
+#import <SPARQLKit/SPKTree.h>
 
 static NSString* rdftype        = @"http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 static NSString* foafImage      = @"http://xmlns.com/foaf/0.1/Image";
@@ -35,10 +35,10 @@ static NSString* foafPerson     = @"http://xmlns.com/foaf/0.1/Person";
 
 @interface GTWApertureTripleStoreQueryPlan : GTWQueryPlan
 @property NSSet* variables;
-- (GTWApertureTripleStoreQueryPlan*) initWithBlock: (NSEnumerator* (^)(id<GTWTree, GTWQueryPlan> plan, id<GTWModel> model))block bindingVariables: (NSSet*) vars;
+- (GTWApertureTripleStoreQueryPlan*) initWithBlock: (NSEnumerator* (^)(id<SPKTree, GTWQueryPlan> plan, id<GTWModel> model))block bindingVariables: (NSSet*) vars;
 @end
 @implementation GTWApertureTripleStoreQueryPlan
-- (GTWApertureTripleStoreQueryPlan*) initWithBlock: (NSEnumerator* (^)(id<GTWTree, GTWQueryPlan> plan, id<GTWModel> model))block bindingVariables: (NSSet*) vars {
+- (GTWApertureTripleStoreQueryPlan*) initWithBlock: (NSEnumerator* (^)(id<SPKTree, GTWQueryPlan> plan, id<GTWModel> model))block bindingVariables: (NSSet*) vars {
     if (self = [self initWithType:kPlanCustom arguments:nil]) {
         self.value      = block;
         self.variables  = [vars copy];
@@ -164,6 +164,57 @@ static NSString* foafPerson     = @"http://xmlns.com/foaf/0.1/Person";
     return array;
 }
 
+- (void) loadPeopleAndFaces {
+    if ([self.faces count])
+        return;
+    
+    @autoreleasepool {
+        //        [self enumeratePhotoFacePeopleFromDatabase:self.facesdb usingBlock:filter];
+        FMDatabase* db  = self.facesdb;
+        FMResultSet *rs = [db executeQuery:@"SELECT faceKey, name, email FROM RKFaceName ORDER BY fullName"];
+        if (rs) {
+            while ([rs next]) {
+                NSNumber* pid   = [rs objectForColumnName:@"faceKey"];
+                NSString* name  = [rs stringForColumn:@"name"];
+                NSString* email = [rs stringForColumn:@"email"];
+                if (!email)
+                    email   = @"";
+                [self.people setObject:@{@"name": name, @"email": email} forKey:pid];
+                // just print out what we've got in a number of formats.
+                //            NSLog(@"%d %@ %@",
+                //                  [rs intForColumn:@"faceKey"],
+                //                  [rs stringForColumn:@"name"],
+                //                  [rs stringForColumn:@"email"]
+                //            );
+            }
+            [rs close];
+        } else {
+            NSLog(@"%@", [db lastErrorMessage]);
+        }
+    }
+    @autoreleasepool {
+        //        [self enumeratePhotoFaceDataFromDatabase:self.facesdb usingBlock:filter];
+        FMDatabase* db  = self.facesdb;
+        FMResultSet *rs = [db executeQuery:@"SELECT masterUuid AS photoid, faceKey FROM RKDetectedFace"];
+        if (rs) {
+            while ([rs next]) {
+                NSString* photo = [rs objectForColumnName:@"photoid"];
+                NSNumber* pid   = [rs objectForColumnName:@"faceKey"];
+                NSMutableSet* set   = [self.faces objectForKey:photo];
+                if (!set) {
+                    set = [NSMutableSet set];
+                    [self.faces setObject:set forKey:photo];
+                }
+                [set addObject:pid];
+            }
+            [rs close];
+        } else {
+            NSLog(@"%@", [db lastErrorMessage]);
+        }
+        
+    }
+}
+
 - (BOOL) enumerateTriplesMatchingSubject: (id<GTWTerm>) s predicate: (id<GTWTerm>) p object: (id<GTWTerm>) o usingBlock: (void (^)(id<GTWTriple> t)) block error:(NSError **)error {
     void (^filter)(id<GTWTriple> t)  = ^(id<GTWTriple> t){
         if (
@@ -251,7 +302,7 @@ static NSString* foafPerson     = @"http://xmlns.com/foaf/0.1/Person";
                     NSDictionary* props = self.people[pid];
                     ABPerson* person = [self matchPersonFromProperties: props];
                     if (person) {
-                        [self.seenPeople setObject:props forKey:person];
+                        [self.seenPeople setObject:props forKey:(id<NSCopying>)person];
                         //                    NSString* name  = props[@"name"];
                         //                    NSLog(@"  - %@ (%@)", name, uri);
                         GTWIRI* predicate   = IRI(foafDepicts);
@@ -434,6 +485,7 @@ static NSString* foafPerson     = @"http://xmlns.com/foaf/0.1/Person";
 }
 
 - (NSEnumerator*) imageDepictionTriplesBindingImage: (NSString*) image depiction: (NSString*) depiction {
+    [self loadPeopleAndFaces];
     NSMutableArray* results = [NSMutableArray array];
     @autoreleasepool {
         FMDatabase* db  = self.facesdb;
@@ -480,7 +532,7 @@ static NSString* foafPerson     = @"http://xmlns.com/foaf/0.1/Person";
     return [results objectEnumerator];
 }
 
-- (id<GTWTree,GTWQueryPlan>) queryPlanForAlgebra: (id<GTWTree>) algebra usingDataset: (id<GTWDataset>) dataset withModel: (id<GTWModel>) model options: (NSDictionary*) options {
+- (id<SPKTree,GTWQueryPlan>) queryPlanForAlgebra: (id<SPKTree>) algebra usingDataset: (id<GTWDataset>) dataset withModel: (id<GTWModel>) model options: (NSDictionary*) options {
 //    NSLog(@"Aperture triple store trying to plan algebra %@", [algebra conciseDescription]);
     if ([algebra.treeTypeName isEqualToString:@"TreeTriple"]) {
         id<GTWTriple> triple    = algebra.value;
@@ -499,7 +551,7 @@ static NSString* foafPerson     = @"http://xmlns.com/foaf/0.1/Person";
                 if ([p.value isEqualToString:rdftype] && [o.value isEqualToString:foafImage]) {
                     // Optimize for the triple pattern { ?s a foaf:Image }
                     NSSet* variables    = [NSSet setWithObject:s];
-                    id<GTWTree,GTWQueryPlan> plan   = [[GTWApertureTripleStoreQueryPlan alloc] initWithBlock:^NSEnumerator*(id<GTWTree, GTWQueryPlan> plan, id<GTWModel> model){
+                    id<SPKTree,GTWQueryPlan> plan   = [[GTWApertureTripleStoreQueryPlan alloc] initWithBlock:^NSEnumerator*(id<SPKTree, GTWQueryPlan> plan, id<GTWModel> model){
                         return [self imageTypeTriplesBindingVariable:s.value];
                     } bindingVariables:variables];
                     return plan;
@@ -507,7 +559,7 @@ static NSString* foafPerson     = @"http://xmlns.com/foaf/0.1/Person";
                 if ([p.value isEqualToString:foafDepicts] && [o isKindOfClass:[GTWVariable class]]) {
                     // Optimize for the triple pattern { ?s foaf:depiction ?d }
                     NSSet* variables    = [NSSet setWithObjects:s, o, nil];
-                    id<GTWTree,GTWQueryPlan> plan   = [[GTWApertureTripleStoreQueryPlan alloc] initWithBlock:^NSEnumerator*(id<GTWTree, GTWQueryPlan> plan, id<GTWModel> model){
+                    id<SPKTree,GTWQueryPlan> plan   = [[GTWApertureTripleStoreQueryPlan alloc] initWithBlock:^NSEnumerator*(id<SPKTree, GTWQueryPlan> plan, id<GTWModel> model){
                         return [self imageDepictionTriplesBindingImage:s.value depiction:o.value];
                     } bindingVariables:variables];
                     return plan;
@@ -520,7 +572,7 @@ static NSString* foafPerson     = @"http://xmlns.com/foaf/0.1/Person";
         NSMutableDictionary* longTriples    = [NSMutableDictionary dictionary];
         NSMutableSet* nonGeoBnodeTriples    = [NSMutableSet set];
 //        NSLog(@"Aperture trying to plan BGP:");
-        for (id<GTWTree> tripleTree in algebra.arguments) {
+        for (id<SPKTree> tripleTree in algebra.arguments) {
             if ([tripleTree.treeTypeName isEqualToString:@"TreeTriple"]) {
 //                NSLog(@"-> %@", tripleTree);
                 id<GTWTriple> triple    = tripleTree.value;
@@ -549,15 +601,15 @@ static NSString* foafPerson     = @"http://xmlns.com/foaf/0.1/Person";
         NSMutableSet* otherTriples  = [NSMutableSet setWithArray:algebra.arguments];
         NSMutableArray* plans       = [NSMutableArray array];
         for (id<GTWTerm> spatial in spatialTriples) {
-            id<GTWTree> spatialTripleTree   = spatialTriples[spatial];
+            id<SPKTree> spatialTripleTree   = spatialTriples[spatial];
             id<GTWTriple> spatialTriple = spatialTripleTree.value;
             id<GTWTerm> image           = spatialTriple.subject;
 //            NSLog(@"spatial triple: %@", spatialTriple);
             
-            id<GTWTree> latTripleTree   = latTriples[spatial];
+            id<SPKTree> latTripleTree   = latTriples[spatial];
             id<GTWTriple> latTriple     = latTripleTree.value;
 
-            id<GTWTree> lonTripleTree   = longTriples[spatial];
+            id<SPKTree> lonTripleTree   = longTriples[spatial];
             id<GTWTriple> lonTriple     = lonTripleTree.value;
 
             id<GTWTerm> lat = latTriple.object;
@@ -568,7 +620,7 @@ static NSString* foafPerson     = @"http://xmlns.com/foaf/0.1/Person";
                 } else {
 //                    NSLog(@"-> found lat and lon variables for spatial node %@ (%@, %@)", spatial, lat, lon);
                     NSSet* variables    = [NSSet setWithObjects:image, lat, lon, nil];
-                    id<GTWTree,GTWQueryPlan> plan   = [[GTWApertureTripleStoreQueryPlan alloc] initWithBlock:^NSEnumerator*(id<GTWTree, GTWQueryPlan> plan, id<GTWModel> model){
+                    id<SPKTree,GTWQueryPlan> plan   = [[GTWApertureTripleStoreQueryPlan alloc] initWithBlock:^NSEnumerator*(id<SPKTree, GTWQueryPlan> plan, id<GTWModel> model){
                         return [self imageGeoTriplesBindingImage:image.value latitude:lat.value longitude:lon.value];
                     } bindingVariables:variables];
                     
@@ -579,7 +631,7 @@ static NSString* foafPerson     = @"http://xmlns.com/foaf/0.1/Person";
                     {
                         // Remove any triple patterns matching { ?image a foaf:Image } for images that we're producing geo data for, because the typing is implicit
                         NSArray* otherCopy  = [otherTriples copy];
-                        for (id<GTWTree> t in otherCopy) {
+                        for (id<SPKTree> t in otherCopy) {
                             id<GTWTriple> triple     = t.value;
                             if ([triple.subject isEqual:image] && [triple.predicate isEqual:IRI(rdftype)] && [triple.object isEqual:IRI(foafImage)]) {
                                 [otherTriples removeObject:t];
@@ -592,18 +644,18 @@ static NSString* foafPerson     = @"http://xmlns.com/foaf/0.1/Person";
         }
         
         if ([plans count]) {
-            id<GTWQueryPlanner> planner = options[@"queryPlanner"];
-            id<GTWTree,GTWQueryPlan> plan   = [plans lastObject];
+            id<SPKQueryPlanner> planner = options[@"queryPlanner"];
+            id<SPKTree,GTWQueryPlan> plan   = [plans lastObject];
             [plans removeLastObject];
             while ([plans count] > 0) {
-                id<GTWTree,GTWQueryPlan> p  = [plans lastObject];
+                id<SPKTree,GTWQueryPlan> p  = [plans lastObject];
                 [plans removeLastObject];
                 plan    = [planner joinPlanForPlans:p and:plan];
             }
             
             if ([otherTriples count]) {
-                for (id<GTWTree> tripleTree in otherTriples) {
-                    id<GTWTree,GTWQueryPlan> triplePlan = [planner queryPlanForAlgebra:tripleTree usingDataset:dataset withModel:model options:options];
+                for (id<SPKTree> tripleTree in otherTriples) {
+                    id<SPKTree,GTWQueryPlan> triplePlan = [planner queryPlanForAlgebra:tripleTree usingDataset:dataset withModel:model options:options];
                     plan    = [planner joinPlanForPlans:plan and:triplePlan];
                 }
             }

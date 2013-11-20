@@ -11,7 +11,7 @@
 #import "FMDatabase.h"
 #import <SPARQLKit/SPARQLKit.h>
 
-@interface GTWApertureTripleStore : NSObject<GTWTripleStore,GTWQueryPlanner>
+@interface GTWApertureTripleStore : NSObject<GTWTripleStore,SPKQueryPlanner>
 
 @property (retain) NSString* base;
 @property (retain) FMDatabase* facesdb;
