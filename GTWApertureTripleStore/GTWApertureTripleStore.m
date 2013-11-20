@@ -69,6 +69,11 @@ static NSString* foafPerson     = @"http://xmlns.com/foaf/0.1/Person";
     return @"{ \"bundlepath\": <Path to Aperture Library.aplibrary file> }";
 }
 
++ (NSDictionary*) classesImplementingProtocols {
+    NSSet* set  = [NSSet setWithObjects:@protocol(GTWTripleStore), nil];
+    return @{ (id)self: set };
+}
+
 + (NSSet*) implementedProtocols {
     return [NSSet setWithObjects:@protocol(GTWTripleStore), nil];
 }
