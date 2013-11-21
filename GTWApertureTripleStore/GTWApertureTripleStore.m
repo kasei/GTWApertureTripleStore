@@ -33,7 +33,7 @@ static NSString* foafName       = @"http://xmlns.com/foaf/0.1/name";
 static NSString* foafMboxSha    = @"http://xmlns.com/foaf/0.1/mbox_sha1sum";
 static NSString* foafPerson     = @"http://xmlns.com/foaf/0.1/Person";
 
-@interface GTWApertureTripleStoreQueryPlan : GTWQueryPlan
+@interface GTWApertureTripleStoreQueryPlan : SPKQueryPlan
 @property NSSet* variables;
 - (GTWApertureTripleStoreQueryPlan*) initWithBlock: (NSEnumerator* (^)(id<SPKTree, GTWQueryPlan> plan, id<GTWModel> model))block bindingVariables: (NSSet*) vars;
 @end
@@ -561,7 +561,7 @@ static NSString* foafPerson     = @"http://xmlns.com/foaf/0.1/Person";
                 if ([p isKindOfClass:[GTWIRI class]]) {
                     NSSet* recognized   = [NSSet setWithObjects:rdftype, foafDepicts, geoLat, geoLong, dctSpatial, foafName, foafMboxSha, nil];
                     if (![recognized containsObject:p.value]) {
-                        return [[GTWQueryPlan alloc] initWithType:kPlanEmpty arguments:nil];
+                        return [[SPKQueryPlan alloc] initWithType:kPlanEmpty arguments:nil];
                     }
                 }
                 
