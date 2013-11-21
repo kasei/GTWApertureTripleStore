@@ -539,136 +539,150 @@ static NSString* foafPerson     = @"http://xmlns.com/foaf/0.1/Person";
 
 - (id<SPKTree,GTWQueryPlan>) queryPlanForAlgebra: (id<SPKTree>) algebra usingDataset: (id<GTWDataset>) dataset withModel: (id<GTWModel>) model options: (NSDictionary*) options {
 //    NSLog(@"Aperture triple store trying to plan algebra %@", [algebra conciseDescription]);
-    if ([algebra.treeTypeName isEqualToString:@"TreeTriple"]) {
-        id<GTWTriple> triple    = algebra.value;
-        NSArray* graphs = [dataset defaultGraphs];
-        NSMutableSet* graphSet  = [NSMutableSet set];
-        for (id<GTWTerm> g in graphs) {
-            [graphSet addObject:g.value];
-        }
-        NSString* tripleStoreIdentifier = options[@"tripleStoreIdentifier"];
-        if ([graphSet containsObject:tripleStoreIdentifier]) {
-//            NSLog(@"Aperture triple store planning triple %@; options: %@", triple, options);
-            id<GTWTerm> s   = triple.subject;
-            id<GTWTerm> p   = triple.predicate;
-            id<GTWTerm> o   = triple.object;
-            if ([s isKindOfClass:[GTWVariable class]]) {
-                if ([p.value isEqualToString:rdftype] && [o.value isEqualToString:foafImage]) {
-                    // Optimize for the triple pattern { ?s a foaf:Image }
-                    NSSet* variables    = [NSSet setWithObject:s];
-                    id<SPKTree,GTWQueryPlan> plan   = [[GTWApertureTripleStoreQueryPlan alloc] initWithBlock:^NSEnumerator*(id<SPKTree, GTWQueryPlan> plan, id<GTWModel> model){
-                        return [self imageTypeTriplesBindingVariable:s.value];
-                    } bindingVariables:variables];
-                    return plan;
+    NSArray* graphs = [dataset defaultGraphs];
+    NSMutableSet* graphSet  = [NSMutableSet set];
+    for (id<GTWTerm> g in graphs) {
+        [graphSet addObject:g.value];
+    }
+    NSArray* datasetGraphs  = [dataset defaultGraphs];
+//    NSLog(@"aperture store planning for graphs: %@", graphSet);
+    if ([graphSet count] == 1 && [datasetGraphs count] == 1) {
+        NSString* g = [graphSet anyObject];
+        GTWIRI* dg  = datasetGraphs[0];
+        if ([g isEqualToString:dg.value]) {
+            if ([algebra.treeTypeName isEqualToString:@"TreeTriple"]) {
+                id<GTWTriple> triple    = algebra.value;
+//                NSLog(@"Aperture triple store planning triple %@; options: %@", triple, options);
+                id<GTWTerm> s   = triple.subject;
+                id<GTWTerm> p   = triple.predicate;
+                id<GTWTerm> o   = triple.object;
+                
+                // If predicate is an IRI that we don't produce, return the empty query plan
+                if ([p isKindOfClass:[GTWIRI class]]) {
+                    NSSet* recognized   = [NSSet setWithObjects:rdftype, foafDepicts, geoLat, geoLong, dctSpatial, foafName, foafMboxSha, nil];
+                    if (![recognized containsObject:p.value]) {
+                        return [[GTWQueryPlan alloc] initWithType:kPlanEmpty arguments:nil];
+                    }
                 }
-                if ([p.value isEqualToString:foafDepicts] && [o isKindOfClass:[GTWVariable class]]) {
-                    // Optimize for the triple pattern { ?s foaf:depiction ?d }
-                    NSSet* variables    = [NSSet setWithObjects:s, o, nil];
-                    id<SPKTree,GTWQueryPlan> plan   = [[GTWApertureTripleStoreQueryPlan alloc] initWithBlock:^NSEnumerator*(id<SPKTree, GTWQueryPlan> plan, id<GTWModel> model){
-                        return [self imageDepictionTriplesBindingImage:s.value depiction:o.value];
-                    } bindingVariables:variables];
-                    return plan;
+                
+                if ([s isKindOfClass:[GTWVariable class]]) {
+                    if ([p.value isEqualToString:rdftype] && [o.value isEqualToString:foafImage]) {
+                        // Optimize for the triple pattern { ?s a foaf:Image }
+                        NSSet* variables    = [NSSet setWithObject:s];
+                        id<SPKTree,GTWQueryPlan> plan   = [[GTWApertureTripleStoreQueryPlan alloc] initWithBlock:^NSEnumerator*(id<SPKTree, GTWQueryPlan> plan, id<GTWModel> model){
+                            return [self imageTypeTriplesBindingVariable:s.value];
+                        } bindingVariables:variables];
+                        return plan;
+                    }
+                    if ([p.value isEqualToString:foafDepicts] && [o isKindOfClass:[GTWVariable class]]) {
+                        // Optimize for the triple pattern { ?s foaf:depiction ?d }
+                        NSSet* variables    = [NSSet setWithObjects:s, o, nil];
+                        id<SPKTree,GTWQueryPlan> plan   = [[GTWApertureTripleStoreQueryPlan alloc] initWithBlock:^NSEnumerator*(id<SPKTree, GTWQueryPlan> plan, id<GTWModel> model){
+                            return [self imageDepictionTriplesBindingImage:s.value depiction:o.value];
+                        } bindingVariables:variables];
+                        return plan;
+                    }
                 }
             }
-        }
-    } else if ([algebra.treeTypeName isEqualToString:@"AlgebraBGP"]) {
-        NSMutableDictionary* spatialTriples = [NSMutableDictionary dictionary];
-        NSMutableDictionary* latTriples     = [NSMutableDictionary dictionary];
-        NSMutableDictionary* longTriples    = [NSMutableDictionary dictionary];
-        NSMutableSet* nonGeoBnodeTriples    = [NSMutableSet set];
-//        NSLog(@"Aperture trying to plan BGP:");
-        for (id<SPKTree> tripleTree in algebra.arguments) {
-            if ([tripleTree.treeTypeName isEqualToString:@"TreeTriple"]) {
-//                NSLog(@"-> %@", tripleTree);
-                id<GTWTriple> triple    = tripleTree.value;
-                id<GTWTerm> s   = triple.subject;
-                id<GTWTerm> o   = triple.object;
-                if ([s isKindOfClass:[GTWVariable class]] && [o isKindOfClass:[GTWVariable class]]) {
-                    id<GTWTerm> p   = triple.predicate;
-                    if ([p.value isEqualToString:dctSpatial] && [o.value hasPrefix:@".b"]) {
-                        spatialTriples[o]   = tripleTree;
-                    } else if ([p.value isEqualToString:geoLat]) {
-                        latTriples[s] = tripleTree;
-                    } else if ([p.value isEqualToString:geoLong]) {
-                        longTriples[s] = tripleTree;
+        } else if ([algebra.treeTypeName isEqualToString:@"AlgebraBGP"]) {
+            NSMutableDictionary* spatialTriples = [NSMutableDictionary dictionary];
+            NSMutableDictionary* latTriples     = [NSMutableDictionary dictionary];
+            NSMutableDictionary* longTriples    = [NSMutableDictionary dictionary];
+            NSMutableSet* nonGeoBnodeTriples    = [NSMutableSet set];
+            //        NSLog(@"Aperture trying to plan BGP:");
+            for (id<SPKTree> tripleTree in algebra.arguments) {
+                if ([tripleTree.treeTypeName isEqualToString:@"TreeTriple"]) {
+                    //                NSLog(@"-> %@", tripleTree);
+                    id<GTWTriple> triple    = tripleTree.value;
+                    id<GTWTerm> s   = triple.subject;
+                    id<GTWTerm> o   = triple.object;
+                    if ([s isKindOfClass:[GTWVariable class]] && [o isKindOfClass:[GTWVariable class]]) {
+                        id<GTWTerm> p   = triple.predicate;
+                        if ([p.value isEqualToString:dctSpatial] && [o.value hasPrefix:@".b"]) {
+                            spatialTriples[o]   = tripleTree;
+                        } else if ([p.value isEqualToString:geoLat]) {
+                            latTriples[s] = tripleTree;
+                        } else if ([p.value isEqualToString:geoLong]) {
+                            longTriples[s] = tripleTree;
+                        } else {
+                            NSSet* vars = [tripleTree inScopeVariables];
+                            [nonGeoBnodeTriples addObjectsFromArray:[vars allObjects]];
+                        }
                     } else {
                         NSSet* vars = [tripleTree inScopeVariables];
                         [nonGeoBnodeTriples addObjectsFromArray:[vars allObjects]];
                     }
-                } else {
-                    NSSet* vars = [tripleTree inScopeVariables];
-                    [nonGeoBnodeTriples addObjectsFromArray:[vars allObjects]];
                 }
             }
-        }
-        
-//        NSLog(@"%@\n%@\n%@", spatialTriples, latTriples, longTriples);
-        NSMutableSet* otherTriples  = [NSMutableSet setWithArray:algebra.arguments];
-        NSMutableArray* plans       = [NSMutableArray array];
-        for (id<GTWTerm> spatial in spatialTriples) {
-            id<SPKTree> spatialTripleTree   = spatialTriples[spatial];
-            id<GTWTriple> spatialTriple = spatialTripleTree.value;
-            id<GTWTerm> image           = spatialTriple.subject;
-//            NSLog(@"spatial triple: %@", spatialTriple);
             
-            id<SPKTree> latTripleTree   = latTriples[spatial];
-            id<GTWTriple> latTriple     = latTripleTree.value;
-
-            id<SPKTree> lonTripleTree   = longTriples[spatial];
-            id<GTWTriple> lonTriple     = lonTripleTree.value;
-
-            id<GTWTerm> lat = latTriple.object;
-            id<GTWTerm> lon = lonTriple.object;
-            if (lat && lon) {
-                if ([nonGeoBnodeTriples containsObject:spatial]) {
-//                    NSLog(@"cannot optimize geo BGP because the spatial node is used in unrecognized triples");
-                } else {
-//                    NSLog(@"-> found lat and lon variables for spatial node %@ (%@, %@)", spatial, lat, lon);
-                    NSSet* variables    = [NSSet setWithObjects:image, lat, lon, nil];
-                    id<SPKTree,GTWQueryPlan> plan   = [[GTWApertureTripleStoreQueryPlan alloc] initWithBlock:^NSEnumerator*(id<SPKTree, GTWQueryPlan> plan, id<GTWModel> model){
-                        return [self imageGeoTriplesBindingImage:image.value latitude:lat.value longitude:lon.value];
-                    } bindingVariables:variables];
-                    
-                    [otherTriples removeObject:spatialTriples[spatial]];
-                    [otherTriples removeObject:latTripleTree];
-                    [otherTriples removeObject:lonTripleTree];
-                    
-                    {
-                        // Remove any triple patterns matching { ?image a foaf:Image } for images that we're producing geo data for, because the typing is implicit
-                        NSArray* otherCopy  = [otherTriples copy];
-                        for (id<SPKTree> t in otherCopy) {
-                            id<GTWTriple> triple     = t.value;
-                            if ([triple.subject isEqual:image] && [triple.predicate isEqual:IRI(rdftype)] && [triple.object isEqual:IRI(foafImage)]) {
-                                [otherTriples removeObject:t];
+            //        NSLog(@"%@\n%@\n%@", spatialTriples, latTriples, longTriples);
+            NSMutableSet* otherTriples  = [NSMutableSet setWithArray:algebra.arguments];
+            NSMutableArray* plans       = [NSMutableArray array];
+            for (id<GTWTerm> spatial in spatialTriples) {
+                id<SPKTree> spatialTripleTree   = spatialTriples[spatial];
+                id<GTWTriple> spatialTriple = spatialTripleTree.value;
+                id<GTWTerm> image           = spatialTriple.subject;
+                //            NSLog(@"spatial triple: %@", spatialTriple);
+                
+                id<SPKTree> latTripleTree   = latTriples[spatial];
+                id<GTWTriple> latTriple     = latTripleTree.value;
+                
+                id<SPKTree> lonTripleTree   = longTriples[spatial];
+                id<GTWTriple> lonTriple     = lonTripleTree.value;
+                
+                id<GTWTerm> lat = latTriple.object;
+                id<GTWTerm> lon = lonTriple.object;
+                if (lat && lon) {
+                    if ([nonGeoBnodeTriples containsObject:spatial]) {
+                        //                    NSLog(@"cannot optimize geo BGP because the spatial node is used in unrecognized triples");
+                    } else {
+                        //                    NSLog(@"-> found lat and lon variables for spatial node %@ (%@, %@)", spatial, lat, lon);
+                        NSSet* variables    = [NSSet setWithObjects:image, lat, lon, nil];
+                        id<SPKTree,GTWQueryPlan> plan   = [[GTWApertureTripleStoreQueryPlan alloc] initWithBlock:^NSEnumerator*(id<SPKTree, GTWQueryPlan> plan, id<GTWModel> model){
+                            return [self imageGeoTriplesBindingImage:image.value latitude:lat.value longitude:lon.value];
+                        } bindingVariables:variables];
+                        
+                        [otherTriples removeObject:spatialTriples[spatial]];
+                        [otherTriples removeObject:latTripleTree];
+                        [otherTriples removeObject:lonTripleTree];
+                        
+                        {
+                            // Remove any triple patterns matching { ?image a foaf:Image } for images that we're producing geo data for, because the typing is implicit
+                            NSArray* otherCopy  = [otherTriples copy];
+                            for (id<SPKTree> t in otherCopy) {
+                                id<GTWTriple> triple     = t.value;
+                                if ([triple.subject isEqual:image] && [triple.predicate isEqual:IRI(rdftype)] && [triple.object isEqual:IRI(foafImage)]) {
+                                    [otherTriples removeObject:t];
+                                }
                             }
                         }
+                        [plans addObject:plan];
                     }
-                    [plans addObject:plan];
                 }
             }
-        }
-        
-        if ([plans count]) {
-            id<SPKQueryPlanner> planner = options[@"queryPlanner"];
-            id<SPKTree,GTWQueryPlan> plan   = [plans lastObject];
-            [plans removeLastObject];
-            while ([plans count] > 0) {
-                id<SPKTree,GTWQueryPlan> p  = [plans lastObject];
+            
+            if ([plans count]) {
+                id<SPKQueryPlanner> planner = options[@"queryPlanner"];
+                id<SPKTree,GTWQueryPlan> plan   = [plans lastObject];
                 [plans removeLastObject];
-                plan    = [planner joinPlanForPlans:p and:plan];
-            }
-            
-            if ([otherTriples count]) {
-                for (id<SPKTree> tripleTree in otherTriples) {
-                    id<SPKTree,GTWQueryPlan> triplePlan = [planner queryPlanForAlgebra:tripleTree usingDataset:dataset withModel:model options:options];
-                    plan    = [planner joinPlanForPlans:plan and:triplePlan];
+                while ([plans count] > 0) {
+                    id<SPKTree,GTWQueryPlan> p  = [plans lastObject];
+                    [plans removeLastObject];
+                    plan    = [planner joinPlanForPlans:p and:plan];
                 }
+                
+                if ([otherTriples count]) {
+                    for (id<SPKTree> tripleTree in otherTriples) {
+                        id<SPKTree,GTWQueryPlan> triplePlan = [planner queryPlanForAlgebra:tripleTree usingDataset:dataset withModel:model options:options];
+                        plan    = [planner joinPlanForPlans:plan and:triplePlan];
+                    }
+                }
+                
+                //            NSLog(@"Custom query plan: ------------------->\n%@", plan);
+                return plan;
             }
-            
-//            NSLog(@"Custom query plan: ------------------->\n%@", plan);
-            return plan;
+            return nil;
         }
-        return nil;
     }
     return nil;
 }
