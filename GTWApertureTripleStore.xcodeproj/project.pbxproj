@@ -23,7 +23,7 @@
 
 /* Begin PBXFileReference section */
 		3700DDD8183B151000AF79C7 /* SPARQLKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SPARQLKit.framework; path = ../../../../../Library/Frameworks/SPARQLKit.framework; sourceTree = "<group>"; };
-		3798F15217AECF9900C9A1B6 /* GTWApertureTripleStore.bundle */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = GTWApertureTripleStore.bundle; sourceTree = BUILT_PRODUCTS_DIR; };
+		3798F15217AECF9900C9A1B6 /* GTWApertureTripleStore.plugin */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = GTWApertureTripleStore.plugin; sourceTree = BUILT_PRODUCTS_DIR; };
 		3798F15517AECF9900C9A1B6 /* CoreFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreFoundation.framework; path = System/Library/Frameworks/CoreFoundation.framework; sourceTree = SDKROOT; };
 		3798F15917AECF9900C9A1B6 /* GTWApertureTripleStore-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GTWApertureTripleStore-Info.plist"; sourceTree = "<group>"; };
 		3798F15B17AECF9900C9A1B6 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
@@ -73,7 +73,7 @@
 		3798F15317AECF9900C9A1B6 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				3798F15217AECF9900C9A1B6 /* GTWApertureTripleStore.bundle */,
+				3798F15217AECF9900C9A1B6 /* GTWApertureTripleStore.plugin */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -137,7 +137,7 @@
 			);
 			name = GTWApertureTripleStore;
 			productName = GTWApertureTripleStore;
-			productReference = 3798F15217AECF9900C9A1B6 /* GTWApertureTripleStore.bundle */;
+			productReference = 3798F15217AECF9900C9A1B6 /* GTWApertureTripleStore.plugin */;
 			productType = "com.apple.product-type.bundle";
 		};
 /* End PBXNativeTarget section */
@@ -268,6 +268,8 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				COMBINE_HIDPI_IMAGES = YES;
+				DEPLOYMENT_LOCATION = YES;
+				DSTROOT = /;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(LOCAL_LIBRARY_DIR)/Frameworks",
@@ -276,9 +278,9 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "GTWApertureTripleStore/GTWApertureTripleStore-Prefix.pch";
 				INFOPLIST_FILE = "GTWApertureTripleStore/GTWApertureTripleStore-Info.plist";
-				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Bundles";
+				INSTALL_PATH = "$(USER_LIBRARY_DIR)/Application Support/SPARQLKit/PlugIns";
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				WRAPPER_EXTENSION = bundle;
+				WRAPPER_EXTENSION = plugin;
 			};
 			name = Debug;
 		};
@@ -286,6 +288,8 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				COMBINE_HIDPI_IMAGES = YES;
+				DEPLOYMENT_LOCATION = YES;
+				DSTROOT = /;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(LOCAL_LIBRARY_DIR)/Frameworks",
@@ -294,9 +298,9 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "GTWApertureTripleStore/GTWApertureTripleStore-Prefix.pch";
 				INFOPLIST_FILE = "GTWApertureTripleStore/GTWApertureTripleStore-Info.plist";
-				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Bundles";
+				INSTALL_PATH = "$(USER_LIBRARY_DIR)/Application Support/SPARQLKit/PlugIns";
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				WRAPPER_EXTENSION = bundle;
+				WRAPPER_EXTENSION = plugin;
 			};
 			name = Release;
 		};
