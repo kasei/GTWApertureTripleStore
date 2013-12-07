@@ -537,7 +537,7 @@ static NSString* foafPerson     = @"http://xmlns.com/foaf/0.1/Person";
     return [results objectEnumerator];
 }
 
-- (id<SPKTree,GTWQueryPlan>) queryPlanForAlgebra: (id<SPKTree>) algebra usingDataset: (id<GTWDataset>) dataset withModel: (id<GTWModel>) model options: (NSDictionary*) options {
+- (id<SPKTree,GTWQueryPlan>) queryPlanForAlgebra: (id<SPKTree>) algebra usingDataset: (id<GTWDataset>) dataset withModel: (id<GTWModel>) model optimize:(BOOL)optFlag options: (NSDictionary*) options {
 //    NSLog(@"Aperture triple store trying to plan algebra %@", [algebra conciseDescription]);
     NSArray* graphs = [dataset defaultGraphs];
     NSMutableSet* graphSet  = [NSMutableSet set];
@@ -673,7 +673,7 @@ static NSString* foafPerson     = @"http://xmlns.com/foaf/0.1/Person";
                 
                 if ([otherTriples count]) {
                     for (id<SPKTree> tripleTree in otherTriples) {
-                        id<SPKTree,GTWQueryPlan> triplePlan = [planner queryPlanForAlgebra:tripleTree usingDataset:dataset withModel:model options:options];
+                        id<SPKTree,GTWQueryPlan> triplePlan = [planner queryPlanForAlgebra:tripleTree usingDataset:dataset withModel:model optimize:optFlag options:options];
                         plan    = [planner joinPlanForPlans:plan and:triplePlan];
                     }
                 }

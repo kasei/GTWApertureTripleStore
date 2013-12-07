@@ -15,7 +15,7 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "3798F15117AECF9900C9A1B6"
-               BuildableName = "GTWApertureTripleStore.bundle"
+               BuildableName = "GTWApertureTripleStore.plugin"
                BlueprintName = "GTWApertureTripleStore"
                ReferencedContainer = "container:GTWApertureTripleStore.xcodeproj">
             </BuildableReference>
